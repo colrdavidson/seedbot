@@ -1,0 +1,35 @@
+{
+	"rotations": {
+		"seed": [
+			"carentan_warfare",
+			"stmariedumont_warfare",
+			"utahbeach_warfare"
+		],
+		"normal": [
+			"stmariedumont_warfare",
+			"foy_warfare",
+			"hurtgenforest_warfare_V2",
+			"carentan_warfare",
+			"kursk_warfare",
+			"stmereeglise_warfare",
+			"stalingrad_warfare",
+			"omahabeach_offensive_us"
+		],
+		"late": [
+			"stmariedumont_warfare",
+			"foy_warfare",
+			"hurtgenforest_warfare_V2",
+			"carentan_warfare",
+			"kursk_warfare",
+			"stmereeglise_warfare",
+			"stalingrad_warfare",
+			"purpleheartlane_warfare",
+			"hill400_warfare"
+		]
+	},
+	"servers": [
+		{"name": "fee", "ip": "127.0.0.1", "port": 8675, "password": "test1"},
+		{"name": "fi", "ip": "127.0.0.1", "port": 8676, "password": "test2"},
+		{"name": "fo", "ip": "127.0.0.1", "port": 8677, "password": "test3"}
+	]
+}
