@@ -1,6 +1,6 @@
-# Seedbot
+# HLL Seedbot
 
-Reads a JSON config file to get access info for servers it's going to manage,
+Reads a JSON config file to get access info for the HLL servers it's going to manage,
 and then enables disables seeding mode and late-night mode depending on
 time of day and server pop
 
