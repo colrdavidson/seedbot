@@ -4,8 +4,11 @@ Reads a JSON config file to get access info for the HLL servers it's going to ma
 and then enables disables seeding mode and late-night mode depending on
 time of day and server pop
 
-Ex: ./seedbot config.json
-
+I run this through cron as a background task, once per minute
+Ex:
+```
+* * * * * ~/seedbot/seedbot ~/seedbot/config.json >> ~/seedbot/output.log 2>&1
+```
 
 Minor caveats with the current version:
 - Late-night is hardcoded to 11 PM -> 4 AM PST (converted to UTC)

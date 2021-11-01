@@ -266,94 +266,89 @@ func main() {
 		panic(err)
 	}
 
-	for should_stop := false; !should_stop; {
-		var wg sync.WaitGroup
-		for i := 0; i < len(config.Servers); i++ {
-			wg.Add(1)
+	var wg sync.WaitGroup
+	for i := 0; i < len(config.Servers); i++ {
+		wg.Add(1)
 
-			go func(config *Config, id int) {
-				defer wg.Done()
+		go func(config *Config, id int) {
+			defer wg.Done()
 
-				srv := &config.Servers[id]
+			srv := &config.Servers[id]
 
-				err = connect_to_server(srv)
+			err = connect_to_server(srv)
+			if err != nil {
+				panic(err)
+			}
+
+			result, err := run_command(srv, "get idletime")
+			if err != nil {
+				panic(err)
+			}
+			idle_time, err := strconv.Atoi(result)
+			if err != nil {
+				panic(err)
+			}
+
+			players, err := run_command(srv, "get players")
+			if err != nil {
+				panic(err)
+			}
+			idx := strings.Index(players, "\t")
+			if idx == -1 {
+				panic("Invalid player ret!\n")
+			}
+
+			count_str := players[:idx]
+			player_count, err := strconv.Atoi(count_str)
+			if err != nil {
+				panic(err)
+			}
+
+			cur_map, err := run_command(srv, "get map")
+			if err != nil {
+				panic(err)
+			}
+
+			new_idle_time := idle_time
+
+			if player_count >= 90 {
+				new_idle_time = 10
+			} else if player_count == 0 {
+				new_idle_time = 9999
+			}
+
+			if idle_time != new_idle_time {
+				fmt.Printf("[%d] %s | Setting new idle time: %d\n", id, nowstr(), new_idle_time)
+				cmd := fmt.Sprintf("setkickidletime %d", new_idle_time)
+				_, err = run_command(srv, cmd)
+
 				if err != nil {
 					panic(err)
 				}
+				idle_time = new_idle_time
+			}
 
-				result, err := run_command(srv, "get idletime")
-				if err != nil {
-					panic(err)
-				}
-				idle_time, err := strconv.Atoi(result)
-				if err != nil {
-					panic(err)
-				}
-
-				players, err := run_command(srv, "get players")
-				if err != nil {
-					panic(err)
-				}
-				idx := strings.Index(players, "\t")
-				if idx == -1 {
-					panic("Invalid player ret!\n")
-				}
-
-				count_str := players[:idx]
-				player_count, err := strconv.Atoi(count_str)
-				if err != nil {
-					panic(err)
-				}
-
-				cur_map, err := run_command(srv, "get map")
-				if err != nil {
-					panic(err)
-				}
-
-				new_idle_time := idle_time
-
-				if player_count >= 90 {
-					new_idle_time = 10
-				} else if player_count == 0 {
-					new_idle_time = 9999
-				}
-
-				if idle_time != new_idle_time {
-					fmt.Printf("[%d] %s | Setting new idle time: %d\n", id, nowstr(), new_idle_time)
-					cmd := fmt.Sprintf("setkickidletime %d", new_idle_time)
-					_, err = run_command(srv, cmd)
-
-					if err != nil {
-						panic(err)
-					}
-					idle_time = new_idle_time
-				}
-
-				rotation_mode := ""
-				if idle_time == 9999 {
-					rotation_mode = "seed"
+			rotation_mode := ""
+			if idle_time == 9999 {
+				rotation_mode = "seed"
+			} else {
+				cur_hour := time.Now().UTC().Hour()
+				// If between 11 PM PST and 6 AM PST -- converted to 24hr UTC
+				if cur_hour > 6 && cur_hour < 13 {
+					rotation_mode = "late"
 				} else {
-					cur_hour := time.Now().UTC().Hour()
-					// If between 11 PM PST and 6 AM PST -- converted to 24hr UTC
-					if cur_hour > 6 && cur_hour < 13 {
-						rotation_mode = "late"
-					} else {
-						rotation_mode = "normal"
-					}
+					rotation_mode = "normal"
 				}
+			}
 
-				err = swap_rotation(config, id, rotation_mode)
-				if err != nil {
-					panic(err)
-				}
+			err = swap_rotation(config, id, rotation_mode)
+			if err != nil {
+				panic(err)
+			}
 
-				fmt.Printf("[%d] %s | %s on %s @ %d -- {%s}\n", id, nowstr(), srv.Name, cur_map, player_count, rotation_mode)
-				srv.conn.Close()
-			}(&config, i)
-		}
-
+			fmt.Printf("[%d] %s | %s on %s @ %d -- {%s}\n", id, nowstr(), srv.Name, cur_map, player_count, rotation_mode)
+			srv.conn.Close()
+		}(&config, i)
 		wg.Wait()
-
-		time.Sleep(60 * time.Second)
 	}
 }
